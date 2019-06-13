@@ -6,11 +6,15 @@
 
 import { Player } from '../classes/Player'
 
+const ANGULAR_VELOCITY_INERTIA = 50;
+const ANGULAR_VELOCITY = 300;
+const PLAYER_SPEED = 500;
+
 export class MainScene extends Phaser.Scene {
   private stars: Phaser.GameObjects.Sprite[];
   private player: Phaser.Physics.Arcade.Image;
   private cursors: Phaser.Input.Keyboard.CursorKeys;
-  private angle: number = 0;
+  private angularVelocity: number = 0;
   private bullets: any;
 
   constructor() {
@@ -36,7 +40,7 @@ export class MainScene extends Phaser.Scene {
     this.player = this.physics.add.image(Number(this.game.config.width) * 2, Number(this.game.config.height) * 2, 'player');
     this.player.setCollideWorldBounds(true);
     this.player.setScale(0.1)
-    this.cameras.main.startFollow(this.player, true, 0.3, 0.3);
+    this.cameras.main.startFollow(this.player, true, 10, 10);
     this.cameras.main.followOffset.set(0, 0);
   }
 
@@ -49,38 +53,30 @@ export class MainScene extends Phaser.Scene {
   }
 
   update(): void {
-    let velocity: any = {x: 0, y: 0};
+    this.playerMovements();
+  }
 
-    if (this.cursors.left.isDown) {
-      this.angle = 270;
-      velocity.x += -250;
+  playerMovements(): void {
+    let velocity = new Phaser.Math.Vector2();
+    if (this.angularVelocity > 0) {
+      this.angularVelocity -= ANGULAR_VELOCITY_INERTIA;
+    } else if (this.angularVelocity < 0) {
+      this.angularVelocity += ANGULAR_VELOCITY_INERTIA;
     }
-    if (this.cursors.right.isDown) {
-      this.angle = 90;
-      velocity.x += 250;
-    }
+    this.player.setAngularVelocity(this.angularVelocity)
     if (this.cursors.up.isDown) {
-      this.angle = 0;
-      velocity.y += -250;
+      velocity = this.physics.velocityFromAngle(this.player.angle - 90, PLAYER_SPEED);
     }
-    if (this.cursors.down.isDown) {
-      this.angle = 180;
-      velocity.y += 250;
+    if (this.cursors.left.isDown && !this.cursors.left.shiftKey) {
+      this.angularVelocity = -ANGULAR_VELOCITY;
+    } else if (this.cursors.left.isDown && this.cursors.left.shiftKey) {
+      velocity = this.physics.velocityFromAngle(this.player.angle - 180, PLAYER_SPEED);
     }
-    if (this.cursors.right.isDown && this.cursors.up.isDown) {
-      this.angle = 45;
+    if (this.cursors.right.isDown && !this.cursors.right.shiftKey) {
+      this.angularVelocity = ANGULAR_VELOCITY;
+    } else if (this.cursors.right.isDown && this.cursors.right.shiftKey) {
+      velocity = this.physics.velocityFromAngle(this.player.angle, PLAYER_SPEED);
     }
-    else if (this.cursors.right.isDown && this.cursors.down.isDown) {
-      this.angle = 135;
-    }
-    else if (this.cursors.left.isDown && this.cursors.up.isDown) {
-      this.angle = 315;
-    }
-    else if (this.cursors.left.isDown && this.cursors.down.isDown) {
-      this.angle = 225;
-    }
-    this.player.setVelocityX(velocity.x);
-    this.player.setVelocityY(velocity.y);
-    this.player.setAngle(this.angle);
+    this.player.setVelocity(velocity.x, velocity.y);
   }
 }
