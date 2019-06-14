@@ -14,21 +14,20 @@ const STARS_DENSITY: number = 1000;
 const ACCELERATION_VALUE: number = 10;
 
 export class MainScene extends Phaser.Scene {
-  private stars: Phaser.GameObjects.Sprite[];
-  private player: any;
+  private player: Phaser.Physics.Arcade.Image;
   private cursors: Phaser.Input.Keyboard.CursorKeys;
   private angularVelocity: number = 0;
-  private bullet: any;
+  private bullet: Phaser.Physics.Arcade.Image;
   private velocity: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
   private playerSpeed: number = 0;
   private lastShot: number = 0;
   private intervalBetweenShots: number = 300;
+  private ennemies: Phaser.Physics.Arcade.Image[] = [];
 
   constructor() {
     super({
       key: "MainScene"
     });
-    this.stars = []
   }
 
   preload(): void {
@@ -45,13 +44,26 @@ export class MainScene extends Phaser.Scene {
     this.cameras.main.setBounds(0, 0, Number(this.game.config.width) * SIZE, Number(this.game.config.height) * SIZE);
     this.physics.world.setBounds(0, 0, Number(this.game.config.width) * SIZE, Number(this.game.config.height) * SIZE);
     this.createStars(STARS_DENSITY, 0.05, 0.15);
+    this.createEnnemies(200);
     this.cursors = this.input.keyboard.createCursorKeys();
     this.player = this.physics.add.image(Number(this.game.config.width) * 2, Number(this.game.config.height) * 2, 'player');
+    this.ennemies.forEach(ennemy => this.physics.add.collider(this.player, ennemy, this.hitPlayer, null, this));
     this.player.setCollideWorldBounds(true);
     this.player.setScale(0.1);
-    this.player.body.setAllowGravity(false);
+    (<Phaser.Physics.Arcade.Body>this.player.body).setAllowGravity(false);
     this.cameras.main.startFollow(this.player, true, 10, 10);
     this.cameras.main.followOffset.set(0, 0);
+  }
+
+  createEnnemies(number): void {
+    for (let i in [...Array(number).keys()]) {
+      const ennemy = this.physics.add.image(Math.random() * Number(this.game.config.width) * SIZE, Math.random() * Number(this.game.config.height) * SIZE, 'player');
+      (<Phaser.Physics.Arcade.Body>ennemy.body).setAllowGravity(false);
+      ennemy.setScale(0.08);
+      ennemy.setAngle(Math.random() * 360);
+      ennemy.setCollideWorldBounds(true);
+      this.ennemies.push(ennemy);
+    }
   }
 
   createStars(density, minScale, maxScale): void {
@@ -77,12 +89,23 @@ export class MainScene extends Phaser.Scene {
         this.lastShot = new Date().getTime();
         this.bullet = this.physics.add.image(this.player.x, this.player.y, 'ball');
         this.bullet.setScale(0.1);
+        this.bullet 
+        this.ennemies.forEach(ennemy => this.physics.add.collider(this.bullet, ennemy, this.hitEnnemy, null, this));
         this.bullet.angle = this.player.angle - 90;
-        this.bullet.body.setAllowGravity(false);
+        (<Phaser.Physics.Arcade.Body>this.bullet.body).setAllowGravity(false);
         bulletVelocity = this.physics.velocityFromAngle(this.player.angle - 90, 900);
         this.bullet.setVelocity(bulletVelocity.x, bulletVelocity.y);
       }
     }
+  }
+
+  hitEnnemy(bullet, ennemy): void {
+    bullet.destroy();
+    ennemy.destroy();
+  }
+
+  hitPlayer(player, ennemy): void {
+    console.log('collision')
   }
 
   playerMovements(): void {
