@@ -5,6 +5,7 @@
  */
 
 import { Player } from '../classes/Player'
+import { Ennemy } from '../classes/Ennemy'
 
 const ANGULAR_VELOCITY_INERTIA = 50;
 const ANGULAR_VELOCITY = 300;
@@ -21,8 +22,8 @@ export class MainScene extends Phaser.Scene {
   private velocity: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
   private playerSpeed: number = 0;
   private lastShot: number = 0;
-  private intervalBetweenShots: number = 300;
-  private ennemies: Phaser.Physics.Arcade.Image[] = [];
+  private intervalBetweenShots: number = 200;
+  private ennemies: Ennemy[] = [];
 
   constructor() {
     super({
@@ -57,12 +58,9 @@ export class MainScene extends Phaser.Scene {
 
   createEnnemies(number): void {
     for (let i in [...Array(number).keys()]) {
-      const ennemy = this.physics.add.image(Math.random() * Number(this.game.config.width) * SIZE, Math.random() * Number(this.game.config.height) * SIZE, 'player');
-      (<Phaser.Physics.Arcade.Body>ennemy.body).setAllowGravity(false);
-      ennemy.setScale(0.08);
-      ennemy.setAngle(Math.random() * 360);
-      ennemy.setCollideWorldBounds(true);
-      this.ennemies.push(ennemy);
+      const ennemy = new Ennemy(this, Math.random() * Number(this.game.config.width) * SIZE, Math.random() * Number(this.game.config.height) * SIZE, 'player');
+
+      this.ennemies.push(<Ennemy>ennemy);
     }
   }
 
@@ -77,6 +75,7 @@ export class MainScene extends Phaser.Scene {
   update(): void {
     this.playerShoots();
     this.playerMovements();
+    this.ennemiesMovements();
   }
 
   playerShoots(): void {
@@ -89,7 +88,6 @@ export class MainScene extends Phaser.Scene {
         this.lastShot = new Date().getTime();
         this.bullet = this.physics.add.image(this.player.x, this.player.y, 'ball');
         this.bullet.setScale(0.1);
-        this.bullet 
         this.ennemies.forEach(ennemy => this.physics.add.collider(this.bullet, ennemy, this.hitEnnemy, null, this));
         this.bullet.angle = this.player.angle - 90;
         (<Phaser.Physics.Arcade.Body>this.bullet.body).setAllowGravity(false);
@@ -99,13 +97,23 @@ export class MainScene extends Phaser.Scene {
     }
   }
 
-  hitEnnemy(bullet, ennemy): void {
-    bullet.destroy();
+  ennemyDie(ennemy): void {
     ennemy.destroy();
   }
 
+  hitEnnemy(bullet, ennemy): void {
+    bullet.destroy();
+    this.ennemyDie(ennemy);
+  }
+
   hitPlayer(player, ennemy): void {
-    console.log('collision')
+    this.ennemyDie(ennemy);
+  }
+
+  ennemiesMovements(): void {
+    this.ennemies.forEach(ennemy => {
+      ennemy.randomMovements();
+    })
   }
 
   playerMovements(): void {
@@ -124,8 +132,7 @@ export class MainScene extends Phaser.Scene {
       if (this.playerSpeed > 0) {
         this.playerSpeed -= this.playerSpeed <= MAX_PLAYER_SPEED ? ACCELERATION_VALUE : 0;
       }
-      this.velocity = this.physics.velocityFromAngle(this.player.angle - 90, -this.playerSpeed);
-      // this.velocity = new Phaser.Math.Vector2({x: this.player.x, y: this.player.y});
+      this.velocity = this.physics.velocityFromAngle(this.player.angle - 90, this.playerSpeed);
     }
     if (this.cursors.left.isDown) {
       this.angularVelocity = -ANGULAR_VELOCITY;
