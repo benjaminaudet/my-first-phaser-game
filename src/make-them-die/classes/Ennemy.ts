@@ -16,9 +16,15 @@ export class Ennemy extends Entity {
     randomMovements() {
         if (new Date().getTime() >= this.lastMovement + 5000) {
             this.lastMovement = new Date().getTime();
-            this.setVelocity(Math.random() * 400 - 200, Math.random() * 400 - 200);
-            this.setAngularVelocity(Math.random() * 200 - 100);
+            if (this.body) {
+                this.setVelocity(Math.random() * 400 - 200, Math.random() * 400 - 200);
+                this.setAngularVelocity(Math.random() * 200 - 100);
+            }
           }
+    }
+
+    update(): void {
+        this.randomMovements();
     }
 
 }
