@@ -15,6 +15,8 @@ export class MainScene extends Phaser.Scene {
   private player: Player;
   private cursors: Phaser.Input.Keyboard.CursorKeys;
   private ennemies: Ennemy[] = [];
+  private score: number = 0;
+  private scoreText: Phaser.GameObjects.Text;
 
   constructor() {
     super({
@@ -42,6 +44,14 @@ export class MainScene extends Phaser.Scene {
     this.ennemies.forEach(ennemy => this.physics.add.collider(this.player, ennemy, this.hitPlayer, null, this));
     this.cameras.main.startFollow(this.player, true, 10, 10);
     this.cameras.main.followOffset.set(0, 0);
+    this.createText();
+  }
+
+  createText(): void {
+    this.scoreText = this.add.text(this.player.x, this.player.y, '');
+    this.scoreText.setTint(0xff0000, 0xff0000, 0xff9999, 0xff9999);
+    this.scoreText.setStroke("white", 1);
+    this.scoreText.setFontSize(18)
   }
 
   createEnnemies(number): void {
@@ -59,17 +69,37 @@ export class MainScene extends Phaser.Scene {
     }
   }
 
-  update(): void {
-    this.player.update(this.cursors);
-    const bullet = this.player.handleShoot(this.cursors);
-    if (bullet) {
-      this.ennemies.forEach(ennemy => this.physics.add.collider(bullet, ennemy, this.hitEnnemy, null, this));
+  updateText(): void {
+    this.scoreText.x = this.player.x + Number(this.game.config.width) / 2 - 200;
+    this.scoreText.y = this.player.y - 270;
+    this.scoreText.text = `
+      Score: ${this.score}\n
+      Health: ${this.player.health}
+    `;
+  }
+
+  isGameOver(): boolean {
+    if (this.player.health <= 0) {
+      return true;
     }
-    this.ennemies.forEach(ennemy => ennemy.update());
+    return false;
+  }
+
+  update(): void {  
+    if (!this.isGameOver()) {
+      this.updateText();
+      this.player.update(this.cursors);
+      const bullet = this.player.handleShoot(this.cursors);
+      if (bullet) {
+        this.ennemies.forEach(ennemy => this.physics.add.collider(bullet, ennemy, this.hitEnnemy, null, this));
+      }
+      this.ennemies.forEach(ennemy => ennemy.update());
+    }
   }
 
   ennemyDie(ennemy): void {
     ennemy.destroy();
+    this.score++;
   }
 
   hitEnnemy(bullet, ennemy): void {
@@ -79,6 +109,7 @@ export class MainScene extends Phaser.Scene {
 
   hitPlayer(player, ennemy): void {
     this.ennemyDie(ennemy);
+    player.health--;
   }
 
 }

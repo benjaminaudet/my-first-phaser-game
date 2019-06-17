@@ -12,6 +12,7 @@ export class Player extends Entity {
   private velocity: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
   private lastShot: number = 0;
   private intervalBetweenShots: number = 200;
+  public health: number = 5;
 
   constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame?: string | integer) {
     super(scene, x, y, texture, frame);
