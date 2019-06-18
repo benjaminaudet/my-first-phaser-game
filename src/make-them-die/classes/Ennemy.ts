@@ -15,7 +15,7 @@ export class Ennemy extends Entity {
     this.setAngle(Math.random() * 360);
   }
 
-  randomMovements() {
+  randomMovement() {
     if (this.body) {
       this.velocity = this.scene.physics.velocityFromAngle(this.angle - 90, 400);
       this.setVelocity(this.velocity.x, this.velocity.y);
@@ -26,7 +26,7 @@ export class Ennemy extends Entity {
     }
   }
 
-  randomShoots() {
+  randomShoot(): Entity {
     if (this.body) {
       if (new Date().getTime() >= this.lastShot + 2500) {
         this.lastShot = new Date().getTime();
@@ -38,8 +38,7 @@ export class Ennemy extends Entity {
   }
 
   update(): void {
-    this.randomMovements();
-    this.randomShoots();
+    this.randomMovement();
   }
 
 }

@@ -17,7 +17,7 @@ export class Player extends Entity {
   constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame?: string | integer) {
     super(scene, x, y, texture, frame);
     this.setVelocity(0);
-    this.setScale(0.08)
+    this.setScale(0.3)
     this.setCollideWorldBounds(true);
     (<Phaser.Physics.Arcade.Body>this.body).setAllowGravity(false);
   }

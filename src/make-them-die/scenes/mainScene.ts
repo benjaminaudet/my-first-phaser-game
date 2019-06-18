@@ -31,7 +31,7 @@ export class MainScene extends Phaser.Scene {
     this.load.image("star_part_default", "./src/make-them-die/assets/sprites/star_part_default.png");
     this.load.image("star_part", "./src/make-them-die/assets/sprites/star_part.png");
     this.load.image("ennemy", "./src/make-them-die/assets/sprites/ennemy.png");
-    this.load.image("player", "./src/make-them-die/assets/sprites/player.png");
+    this.load.image("player", "./src/make-them-die/assets/sprites/player_2.png");
     this.load.image("ball", "./src/make-them-die/assets/sprites/ball.png");
     this.load.image("ball_red", "./src/make-them-die/assets/sprites/ball-red.png");
   }
@@ -45,7 +45,7 @@ export class MainScene extends Phaser.Scene {
     this.createEnnemies(300);
     this.cursors = this.input.keyboard.createCursorKeys();
     this.player = new Player(this, Number(this.game.config.width) * SIZE / 2, Number(this.game.config.height) * SIZE / 2, 'player');
-    this.ennemies.forEach(ennemy => this.physics.add.collider(this.player, ennemy, this.hitPlayer, null, this));
+    this.ennemies.forEach(ennemy => this.physics.add.collider(this.player, ennemy, this.collidePlayer, null, this));
     this.cameras.main.startFollow(this.player, true, 5, 5);
     this.cameras.main.followOffset.set(0, 0);
     this.createText();
@@ -102,7 +102,13 @@ export class MainScene extends Phaser.Scene {
       if (bullet) {
         this.ennemies.forEach(ennemy => this.physics.add.collider(bullet, ennemy, this.hitEnnemy, null, this));
       }
-      this.ennemies.forEach(ennemy => ennemy.update());
+      this.ennemies.forEach(ennemy => {
+        ennemy.update();
+        const bullet = ennemy.randomShoot();
+        if (bullet) {
+          this.physics.add.collider(bullet, this.player, this.hitPlayer, null)
+        }
+      });
     }
   }
 
@@ -116,8 +122,13 @@ export class MainScene extends Phaser.Scene {
     this.ennemyDie(ennemy);
   }
 
-  hitPlayer(player, ennemy): void {
+  collidePlayer(player, ennemy): void {
     this.ennemyDie(ennemy);
+    player.health--;
+  }
+
+  hitPlayer(bullet, player): void {
+    bullet.destroy();
     player.health--;
   }
 
