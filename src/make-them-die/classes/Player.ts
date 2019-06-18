@@ -12,12 +12,12 @@ export class Player extends Entity {
   private velocity: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
   private lastShot: number = 0;
   private intervalBetweenShots: number = 200;
-  public health: number = 5;
+  public health: number = 15;
 
   constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame?: string | integer) {
     super(scene, x, y, texture, frame);
     this.setVelocity(0);
-    this.setScale(0.1)
+    this.setScale(0.08)
     this.setCollideWorldBounds(true);
     (<Phaser.Physics.Arcade.Body>this.body).setAllowGravity(false);
   }

@@ -8,8 +8,8 @@ import { Player } from '../classes/Player'
 import { Ennemy } from '../classes/Ennemy'
 import Entity from '../classes/Entity';
 
-const SIZE = 8;
-const STARS_DENSITY: number = 1000;
+const SIZE = 16;
+const STARS_DENSITY: number = 2000;
 
 export class MainScene extends Phaser.Scene {
   private player: Player;
@@ -17,6 +17,7 @@ export class MainScene extends Phaser.Scene {
   private ennemies: Ennemy[] = [];
   private score: number = 0;
   private scoreText: Phaser.GameObjects.Text;
+  private nextScene: string; 
 
   constructor() {
     super({
@@ -29,34 +30,41 @@ export class MainScene extends Phaser.Scene {
     this.load.image("star_flare", "./src/make-them-die/assets/sprites/star_flare.png");
     this.load.image("star_part_default", "./src/make-them-die/assets/sprites/star_part_default.png");
     this.load.image("star_part", "./src/make-them-die/assets/sprites/star_part.png");
+    this.load.image("ennemy", "./src/make-them-die/assets/sprites/ennemy.png");
     this.load.image("player", "./src/make-them-die/assets/sprites/player.png");
     this.load.image("ball", "./src/make-them-die/assets/sprites/ball.png");
+    this.load.image("ball_red", "./src/make-them-die/assets/sprites/ball-red.png");
   }
 
   create(): void {
+    this.score = 0;
     this.physics.world.setFPS(60)
     this.cameras.main.setBounds(0, 0, Number(this.game.config.width) * SIZE, Number(this.game.config.height) * SIZE);
     this.physics.world.setBounds(0, 0, Number(this.game.config.width) * SIZE, Number(this.game.config.height) * SIZE);
     this.createStars(STARS_DENSITY, 0.05, 0.15);
-    this.createEnnemies(200);
+    this.createEnnemies(300);
     this.cursors = this.input.keyboard.createCursorKeys();
-    this.player = new Player(this, Number(this.game.config.width) * 2, Number(this.game.config.height) * 2, 'player');
+    this.player = new Player(this, Number(this.game.config.width) * SIZE / 2, Number(this.game.config.height) * SIZE / 2, 'player');
     this.ennemies.forEach(ennemy => this.physics.add.collider(this.player, ennemy, this.hitPlayer, null, this));
-    this.cameras.main.startFollow(this.player, true, 10, 10);
+    this.cameras.main.startFollow(this.player, true, 5, 5);
     this.cameras.main.followOffset.set(0, 0);
     this.createText();
+    this.cameras.main.once("camerafadeoutcomplete", () => {
+      this.scene.start(this.nextScene);
+      this.scene.stop();
+    });
   }
 
   createText(): void {
     this.scoreText = this.add.text(this.player.x, this.player.y, '');
     this.scoreText.setTint(0xff0000, 0xff0000, 0xff9999, 0xff9999);
     this.scoreText.setStroke("white", 1);
-    this.scoreText.setFontSize(18)
+    this.scoreText.setFontSize(18);
   }
 
   createEnnemies(number): void {
     for (let i in [...Array(number).keys()]) {
-      const ennemy = new Ennemy(this, Math.random() * Number(this.game.config.width) * SIZE, Math.random() * Number(this.game.config.height) * SIZE, 'player');
+      const ennemy = new Ennemy(this, Math.random() * Number(this.game.config.width) * SIZE, Math.random() * Number(this.game.config.height) * SIZE, 'ennemy');
       this.ennemies.push(<Ennemy>ennemy);
     }
   }
@@ -80,12 +88,13 @@ export class MainScene extends Phaser.Scene {
 
   isGameOver(): boolean {
     if (this.player.health <= 0) {
-      return true;
+      this.nextScene = 'GameOverScene';
+      this.cameras.main.fade(250, 0, 0, 0);
     }
     return false;
   }
 
-  update(): void {  
+  update(): void {
     if (!this.isGameOver()) {
       this.updateText();
       this.player.update(this.cursors);

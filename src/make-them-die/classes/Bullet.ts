@@ -8,6 +8,7 @@ export default class Bullet extends Entity {
     }
 
     fire(angle) {
+        this.scene.time.addEvent({ delay: 500, callback: () => this.destroy() });
         this.angle = angle - 90;
         let bulletVelocity = new Phaser.Math.Vector2();
         bulletVelocity = this.scene.physics.velocityFromAngle(angle - 90, 900);
