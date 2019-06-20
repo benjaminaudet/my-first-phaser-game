@@ -5,11 +5,41 @@ const ANGULAR_VELOCITY_INERTIA = 50;
 const ANGULAR_VELOCITY = 300;
 const MAX_PLAYER_SPEED = 500;
 const ACCELERATION_VALUE: number = 10;
+const TIME_BETWEEN_SHOTS = 200;
 
 export class Player extends Entity {
+  private shootPatterns = [
+    [
+      0
+    ],
+    [
+      -15,
+      15
+    ],
+    [
+      -15,
+      0,
+      15
+    ],
+    [
+      -30,
+      -15,
+      15,
+      30
+    ],
+    [
+      -30,
+      -15,
+      0,
+      15,
+      30
+    ]
+  ];
   private angularVelocity: number = 0;
+  private levelShoot: number = 1;
   private playerSpeed: number = 0;
   private velocity: Phaser.Math.Vector2 = new Phaser.Math.Vector2();
+  private lastUpgradeShoot: number = 0;
   private lastShot: number = 0;
   private intervalBetweenShots: number = 200;
   public health: number = 15;
@@ -22,16 +52,43 @@ export class Player extends Entity {
     (<Phaser.Physics.Arcade.Body>this.body).setAllowGravity(false);
   }
 
-  handleShoot(cursors): Entity {
+  upgradeLevelShoot() {
+    if (new Date().getTime() > this.lastUpgradeShoot + 250) {
+      this.lastUpgradeShoot = new Date().getTime();
+      this.levelShoot++;
+    }
+  }
+
+  downgradeLevelShoot() {
+    if (new Date().getTime() > this.lastUpgradeShoot + 250) {
+      this.lastUpgradeShoot = new Date().getTime();
+      this.levelShoot--;
+    }
+  }
+
+  shoot(number): Entity[] {
+    if (number > 5) {
+      number = 5;
+    } else if (number < 1) {
+      number = 1;
+    }
+    let bullets = [];
+    for (let i = 0; i < number; i++) {
+      const bullet = new Bullet(this.scene, this.x, this.y, 'ball', 800);
+      bullets.push(bullet);
+      bullet.fire(this.angle + this.shootPatterns[number - 1][i]);
+    }
+    return bullets;
+  }
+
+  handleShoot(cursors): Entity[] {
     if (this.lastShot == 0) {
       this.lastShot = new Date().getTime();
     }
     if (cursors.space.isDown) {
-      if (new Date().getTime() >= this.lastShot + this.intervalBetweenShots) {
+      if (new Date().getTime() >= this.lastShot + TIME_BETWEEN_SHOTS) {
         this.lastShot = new Date().getTime();
-        const bullet = new Bullet(this.scene, this.x, this.y, 'ball');
-        bullet.fire(this.angle);
-        return bullet;
+        return this.shoot(this.levelShoot);
       }
     }
   }
@@ -60,6 +117,8 @@ export class Player extends Entity {
     if (cursors.right.isDown) {
       this.angularVelocity = ANGULAR_VELOCITY;
     }
+    this.scene.input.keyboard.on('keydown-O', () => this.upgradeLevelShoot())
+    this.scene.input.keyboard.on('keydown-P', () => this.downgradeLevelShoot())
     this.setVelocity(this.velocity.x, this.velocity.y);
   }
 

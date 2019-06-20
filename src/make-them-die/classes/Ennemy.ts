@@ -1,6 +1,9 @@
 import Entity from "./Entity";
 import Bullet from "./Bullet";
 
+const TIME_BETWEEN_SHOTS = 1000;
+const TIME_BETWEEN_ROTATIONS = 2000;
+
 export class Ennemy extends Entity {
   public id: string;
   public lastRotation: number = 0;
@@ -17,9 +20,9 @@ export class Ennemy extends Entity {
 
   randomMovement() {
     if (this.body) {
-      this.velocity = this.scene.physics.velocityFromAngle(this.angle - 90, 400);
+      this.velocity = this.scene.physics.velocityFromAngle(this.angle - 90, 300);
       this.setVelocity(this.velocity.x, this.velocity.y);
-      if (new Date().getTime() >= this.lastRotation + 10000) {
+      if (new Date().getTime() >= this.lastRotation + TIME_BETWEEN_ROTATIONS) {
         this.lastRotation = new Date().getTime();
         this.setAngularVelocity(Phaser.Math.Between(-90, 90));
       }
@@ -28,9 +31,9 @@ export class Ennemy extends Entity {
 
   randomShoot(): Entity {
     if (this.body) {
-      if (new Date().getTime() >= this.lastShot + 2500) {
+      if (new Date().getTime() >= this.lastShot + TIME_BETWEEN_SHOTS) {
         this.lastShot = new Date().getTime();
-        const bullet = new Bullet(this.scene, this.x, this.y, 'ball_red');
+        const bullet = new Bullet(this.scene, this.x, this.y, 'ball_red', 500);
         bullet.fire(this.angle);
         return bullet;
       }
