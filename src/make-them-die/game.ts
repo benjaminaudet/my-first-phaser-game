@@ -10,8 +10,8 @@ import { GameOverScene } from "./scenes/gameOverScene";
 
 // main game configuration
 const config: GameConfig = {
-  width: 800,
-  height: 600,
+  width: 900,
+  height: 800,
   type: Phaser.AUTO,
   parent: "game",
   scene: [
