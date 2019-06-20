@@ -6,10 +6,9 @@
 
 import { Player } from '../classes/Player'
 import { Ennemy } from '../classes/Ennemy'
-import Entity from '../classes/Entity';
 
 const SIZE = 16;
-const STARS_DENSITY: number = 2000;
+const STARS_DENSITY: number = 3000;
 
 export class MainScene extends Phaser.Scene {
   private player: Player;
@@ -17,7 +16,7 @@ export class MainScene extends Phaser.Scene {
   private ennemies: Ennemy[] = [];
   private score: number = 0;
   private scoreText: Phaser.GameObjects.Text;
-  private nextScene: string; 
+  private nextScene: string;
 
   constructor() {
     super({
@@ -26,33 +25,128 @@ export class MainScene extends Phaser.Scene {
   }
 
   preload(): void {
-    this.load.image("star_flare_default", "./src/make-them-die/assets/sprites/star_flare_default.png");
-    this.load.image("star_flare", "./src/make-them-die/assets/sprites/star_flare.png");
-    this.load.image("star_part_default", "./src/make-them-die/assets/sprites/star_part_default.png");
-    this.load.image("star_part", "./src/make-them-die/assets/sprites/star_part.png");
-    this.load.image("ennemy", "./src/make-them-die/assets/sprites/ennemy.png");
-    this.load.image("player", "./src/make-them-die/assets/sprites/player_2.png");
-    this.load.image("ball", "./src/make-them-die/assets/sprites/ball.png");
-    this.load.image("ball_red", "./src/make-them-die/assets/sprites/ball-red.png");
+    this.load.path = './src/make-them-die/assets/sprites/';
+    this.load.image("star_flare_default", "star_flare_default.png");
+    this.load.image("star_flare", "star_flare.png");
+    this.load.image("star_part_default", "star_part_default.png");
+    this.load.image("star_part", "star_part.png");
+    this.load.image("ennemy", "ennemy.png");
+    this.load.image("player", "player_2.png");
+    this.load.image("ball", "ball.png");
+    this.load.image("ball_red", "ball-red.png");
+    this.load.atlas('explosion1', 'explosion_1.png', 'explosion.json');
+    this.load.atlas('explosion2', 'explosion_2.png', 'explosion.json');
+    this.load.atlas('explosion3', 'explosion_3.png', 'explosion.json');
+    this.load.atlas('explosion4', 'explosion_4.png', 'explosion.json');
   }
 
   create(): void {
     this.score = 0;
     this.physics.world.setFPS(60)
+
+    // Set camera and world bounds
     this.cameras.main.setBounds(0, 0, Number(this.game.config.width) * SIZE, Number(this.game.config.height) * SIZE);
     this.physics.world.setBounds(0, 0, Number(this.game.config.width) * SIZE, Number(this.game.config.height) * SIZE);
+
+    // Generate backgrounds stars
     this.createStars(STARS_DENSITY, 0.05, 0.15);
+    
+    // Generate ennemies
     this.createEnnemies(300);
     this.cursors = this.input.keyboard.createCursorKeys();
+    
+    // Create player at the center of the map
     this.player = new Player(this, Number(this.game.config.width) * SIZE / 2, Number(this.game.config.height) * SIZE / 2, 'player');
+    
+    // Add collisions between all ennemis and player
     this.ennemies.forEach(ennemy => this.physics.add.collider(this.player, ennemy, this.collidePlayer, null, this));
+
+    // Make the camera follow the player
     this.cameras.main.startFollow(this.player, true, 5, 5);
     this.cameras.main.followOffset.set(0, 0);
+    
+    // Add score and health label
     this.createText();
+
+    // Set the listener on camera fadeout complete to change the scene
     this.cameras.main.once("camerafadeoutcomplete", () => {
       this.scene.start(this.nextScene);
       this.scene.stop();
     });
+
+    // Declare explosions textures
+    this.declareExplosions();
+  }
+
+  declareExplosions() {
+    this.textures.addSpriteSheetFromAtlas(
+      't_explosion1',
+      {
+        atlas: 'explosion1',
+        frame: 'explosion',
+        frameWidth: 512,
+        frameHeight: 512,
+        endFrame: 64
+      }
+    );
+    this.textures.addSpriteSheetFromAtlas(
+      't_explosion2',
+      {
+        atlas: 'explosion2',
+        frame: 'explosion',
+        frameWidth: 512,
+        frameHeight: 512,
+        endFrame: 64
+      }
+    );
+    this.textures.addSpriteSheetFromAtlas(
+      't_explosion3',
+      {
+        atlas: 'explosion3',
+        frame: 'explosion',
+        frameWidth: 512,
+        frameHeight: 512,
+        endFrame: 64
+      }
+    );
+    this.textures.addSpriteSheetFromAtlas(
+      't_explosion4',
+      {
+        atlas: 'explosion4',
+        frame: 'explosion',
+        frameWidth: 512,
+        frameHeight: 512,
+        endFrame: 64
+      }
+    );
+    var config1 = {
+      key: 'explode1',
+      frames: this.anims.generateFrameNumbers('t_explosion1', { start: 0, end: 64 }),
+      frameRate: 60,
+      repeat: 0
+    };
+    var config2 = {
+      key: 'explode2',
+      frames: this.anims.generateFrameNumbers('t_explosion2', { start: 0, end: 64 }),
+      frameRate: 60,
+      repeat: 0
+    };
+    var config3 = {
+      key: 'explode3',
+      frames: this.anims.generateFrameNumbers('t_explosion3', { start: 0, end: 64 }),
+      frameRate: 60,
+      repeat: 0
+    };
+    var config4 = {
+      key: 'explode4',
+      frames: this.anims.generateFrameNumbers('t_explosion4', { start: 0, end: 64 }),
+      frameRate: 60,
+      repeat: 0
+    };
+    this.anims.create(config1);
+    this.anims.create(config2);
+    this.anims.create(config3);
+    this.anims.create(config4);
   }
 
   createText(): void {
@@ -89,7 +183,7 @@ export class MainScene extends Phaser.Scene {
   isGameOver(): boolean {
     if (this.player.health <= 0) {
       this.nextScene = 'GameOverScene';
-      this.cameras.main.fade(250, 0, 0, 0);
+      this.cameras.main.fade(1000, 0, 0, 0);
     }
     return false;
   }
@@ -98,9 +192,9 @@ export class MainScene extends Phaser.Scene {
     if (!this.isGameOver()) {
       this.updateText();
       this.player.update(this.cursors);
-      const bullet = this.player.handleShoot(this.cursors);
-      if (bullet) {
-        this.ennemies.forEach(ennemy => this.physics.add.collider(bullet, ennemy, this.hitEnnemy, null, this));
+      const bullets = this.player.handleShoot(this.cursors);
+      if (bullets) {
+        bullets.forEach(bullet => this.ennemies.forEach(ennemy => this.physics.add.collider(bullet, ennemy, this.hitEnnemy, null, this)));
       }
       this.ennemies.forEach(ennemy => {
         ennemy.update();
@@ -113,6 +207,12 @@ export class MainScene extends Phaser.Scene {
   }
 
   ennemyDie(ennemy): void {
+    const randomExplosionNumber = Phaser.Math.Between(1, 4);
+    const explosion = this.add.sprite(ennemy.x, ennemy.y, `explode${randomExplosionNumber}`).play(`explode${randomExplosionNumber}`);
+    if (randomExplosionNumber != 1) {
+      explosion.setScale(0.5);
+    }
+    this.time.addEvent({delay: 1200, callback: () => explosion.destroy()})
     ennemy.destroy();
     this.score++;
   }

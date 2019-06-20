@@ -1,0 +1,21 @@
+{"frames": [
+    {
+        "filename": "explosion",
+        "frame": {"x":0,"y":0,"w":4096,"h":4096},
+        "rotated": false,
+        "trimmed": true,
+        "spriteSourceSize": {"x":0,"y":0,"w":4096,"h":4096},
+        "sourceSize": {"w":4096,"h":4096},
+        "pivot": {"x":0.5,"y":0.5}
+    }],
+    "meta": {
+        "app": "http://www.codeandweb.com/texturepacker",
+        "version": "1.0",
+        "image": "explosion_1.png",
+        "format": "RGBA8888",
+        "size": {"w":1536,"h":328},
+        "scale": "1",
+        "smartupdate": "$TexturePacker:SmartUpdate:42dfd6706996e5207afea039fd92bfe7:32b2b714e918c0bdab956492cf674542:67b903997dd4652f52945ccb7b6f9ff6$"
+    }
+    }
+    
