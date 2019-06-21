@@ -17,6 +17,7 @@ export class MainScene extends Phaser.Scene {
   private score: number = 0;
   private scoreText: Phaser.GameObjects.Text;
   private nextScene: string;
+  private sounds: Phaser.Sound.BaseSound[] = [];
 
   constructor() {
     super({
@@ -38,6 +39,12 @@ export class MainScene extends Phaser.Scene {
     this.load.atlas('explosion2', 'explosion_2.png', 'explosion.json');
     this.load.atlas('explosion3', 'explosion_3.png', 'explosion.json');
     this.load.atlas('explosion4', 'explosion_4.png', 'explosion.json');
+    this.load.path = './src/make-them-die/assets/sounds/';
+    this.load.audio('explosion1', 'explosion1.mp3');
+    this.load.audio('explosion2', 'explosion2.mp3');
+    this.load.audio('explosion3', 'explosion3.mp3');
+    this.load.audio('laser1', 'laser1.mp3');
+    this.load.audio('laser2', 'laser2.mp3');
   }
 
   create(): void {
@@ -76,6 +83,12 @@ export class MainScene extends Phaser.Scene {
 
     // Declare explosions textures
     this.declareExplosions();
+
+    this.sounds.push(this.sound.add('explosion1'));
+    this.sounds.push(this.sound.add('explosion2'));
+    this.sounds.push(this.sound.add('explosion3'));
+    this.sounds.push(this.sound.add('laser1'));
+    this.sounds.push(this.sound.add('laser2'));
   }
 
   declareExplosions() {
@@ -172,11 +185,12 @@ export class MainScene extends Phaser.Scene {
   }
 
   updateText(): void {
-    this.scoreText.x = this.player.x + Number(this.game.config.width) / 2 - 200;
+    this.scoreText.x = this.player.x + Number(this.game.config.width) / 2 - 300;
     this.scoreText.y = this.player.y - 270;
     this.scoreText.text = `
       Score: ${this.score}\n
-      Health: ${this.player.health}
+      Health: ${this.player.health}\n
+      Ennemies left: ${this.ennemies.length}
     `;
   }
 
@@ -194,6 +208,8 @@ export class MainScene extends Phaser.Scene {
       this.player.update(this.cursors);
       const bullets = this.player.handleShoot(this.cursors);
       if (bullets) {
+        const randomLaserIndexSound = Phaser.Math.Between(3, 4);
+        this.sounds[randomLaserIndexSound].play();
         bullets.forEach(bullet => this.ennemies.forEach(ennemy => this.physics.add.collider(bullet, ennemy, this.hitEnnemy, null, this)));
       }
       this.ennemies.forEach(ennemy => {
@@ -209,6 +225,8 @@ export class MainScene extends Phaser.Scene {
   ennemyDie(ennemy): void {
     const randomExplosionNumber = Phaser.Math.Between(1, 4);
     const explosion = this.add.sprite(ennemy.x, ennemy.y, `explode${randomExplosionNumber}`).play(`explode${randomExplosionNumber}`);
+    const randomExplosionNumberSound = Phaser.Math.Between(0, 2);
+    this.sounds[randomExplosionNumberSound].play();
     if (randomExplosionNumber != 1) {
       explosion.setScale(0.5);
     }
