@@ -162,6 +162,16 @@ export class MainScene extends Phaser.Scene {
     this.anims.create(config4);
   }
 
+  countEnnemies() {
+    let count = 0;
+    this.ennemies.forEach(ennemy => {
+      if (ennemy.body) {
+        count++;
+      }
+    })
+    return count;
+  }
+
   createText(): void {
     this.scoreText = this.add.text(this.player.x, this.player.y, '');
     this.scoreText.setTint(0xff0000, 0xff0000, 0xff9999, 0xff9999);
@@ -190,7 +200,7 @@ export class MainScene extends Phaser.Scene {
     this.scoreText.text = `
       Score: ${this.score}\n
       Health: ${this.player.health}\n
-      Ennemies left: ${this.ennemies.length}
+      Ennemies left: ${this.countEnnemies()}
     `;
   }
 
